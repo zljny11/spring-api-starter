@@ -4,19 +4,17 @@ import com.codewithmosh.store.dtos.ChangePasswordRequest;
 import com.codewithmosh.store.dtos.RegisterUserRequest;
 import com.codewithmosh.store.dtos.UpdateUserRequest;
 import com.codewithmosh.store.dtos.UserDto;
-import com.codewithmosh.store.entities.User;
 import com.codewithmosh.store.mappers.UserMapper;
 import com.codewithmosh.store.repositories.UserRepository;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
+import java.util.*;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import static java.util.stream.Collectors.toList;
+
 
 /**
  * 【学习笔记】RESTful API控制器最佳实践
@@ -113,8 +111,13 @@ public class UserController {
      * - Location: http://localhost:8080/users/123 (指向新创建的资源)
      */
     @PostMapping
-    public ResponseEntity<UserDto> createUser(@RequestBody RegisterUserRequest request,
+    public ResponseEntity<UserDto> createUser(@Valid @RequestBody RegisterUserRequest request,
                                               UriComponentsBuilder uriBuilder){
+        //检查邮箱是否已存在
+        if (userRepository.existsByEmail(request.getEmail())){
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new UserDto(null, null, request.getEmail()));
+        }
         var user = userMapper.toEntity(request); // Request → Entity (数据库操作需要)
         userRepository.save(user); // 保存到数据库
 
