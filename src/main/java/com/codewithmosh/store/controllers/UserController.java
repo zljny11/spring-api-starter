@@ -111,12 +111,14 @@ public class UserController {
      * - Location: http://localhost:8080/users/123 (指向新创建的资源)
      */
     @PostMapping
-    public ResponseEntity<UserDto> createUser(@Valid @RequestBody RegisterUserRequest request,
+    //使用泛型参数，返回任意类型
+    public ResponseEntity<?> createUser(@Valid @RequestBody RegisterUserRequest request,
                                               UriComponentsBuilder uriBuilder){
         //检查邮箱是否已存在
         if (userRepository.existsByEmail(request.getEmail())){
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new UserDto(null, null, request.getEmail()));
+            return ResponseEntity.badRequest().body(
+                    Map.of("email","Email already exists")
+            );
         }
         var user = userMapper.toEntity(request); // Request → Entity (数据库操作需要)
         userRepository.save(user); // 保存到数据库
